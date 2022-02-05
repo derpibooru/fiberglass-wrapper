@@ -1,0 +1,10 @@
+[package]
+name = "fiberglass-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ureq = { version = "2.4.0", default-features = false }
+base64 = "0.13.0"
