@@ -5,19 +5,19 @@ use std::io::{stderr, stdout, Write};
 use std::path::Path;
 use std::process;
 
-fn valid_extension(ext: Option<&OsStr>) -> Option<&str> {
-    match ext?.to_str() {
-        Some("gif") => Some(".gif"),
-        Some("jpg") => Some(".jpg"),
-        Some("jpeg") => Some(".jpeg"),
-        Some("png") => Some(".png"),
-        Some("svg") => Some(".svg"),
-        Some("webm") => Some(".webm"),
-        Some("webp") => Some(".webp"),
-        Some("mp4") => Some(".mp4"),
-        Some("icc") => Some(".icc"),
-        _ => None,
-    }
+fn sanitized_extension(ext: Option<&OsStr>) -> &'static str {
+    ext.map_or("", |name| match name.to_str() {
+        Some("gif") => ".gif",
+        Some("jpg") => ".jpg",
+        Some("jpeg") => ".jpeg",
+        Some("png") => ".png",
+        Some("svg") => ".svg",
+        Some("webm") => ".webm",
+        Some("webp") => ".webp",
+        Some("mp4") => ".mp4",
+        Some("icc") => ".icc",
+        _ => "",
+    })
 }
 
 fn execute() -> Option<()> {
@@ -36,16 +36,15 @@ fn execute() -> Option<()> {
             let path = Path::new(&arg);
 
             if arg.starts_with('/') && path.exists() {
-                match valid_extension(path.extension()) {
-                    Some(realext) => {
-                        let filename = format!("{}{}", replacements.len(), realext);
+                let filename = format!(
+                    "{}{}",
+                    replacements.len(),
+                    sanitized_extension(path.extension())
+                );
 
-                        replacements.push((filename.clone(), arg));
+                replacements.push((filename.clone(), arg));
 
-                        filename
-                    }
-                    None => arg,
-                }
+                filename
             } else {
                 arg
             }
