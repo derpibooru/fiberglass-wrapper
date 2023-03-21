@@ -1,9 +1,10 @@
 use std::env;
 use std::ffi::OsStr;
 use std::fs;
-use std::io::{stderr, stdout, Write};
+use std::io::{stderr, stdout, Read, Write};
 use std::path::Path;
 use std::process;
+use std::str;
 
 fn sanitized_extension(ext: Option<&OsStr>) -> &'static str {
     ext.map_or("", |name| match name.to_str() {
@@ -77,7 +78,13 @@ fn execute() -> Option<()> {
         return None;
     }
 
-    let response_body = response.into_string().ok()?;
+    assert!(response.has("Content-Length"));
+    let len: usize = response.header("Content-Length").unwrap().parse().ok()?;
+
+    let mut bytes: Vec<u8> = Vec::with_capacity(len);
+    response.into_reader().read_to_end(&mut bytes).ok()?;
+
+    let response_body = str::from_utf8(&bytes).ok()?;
     let mut exit_status: i32 = 1;
     let mut program_stdout: Vec<u8> = vec![];
     let mut program_stderr: Vec<u8> = vec![];
